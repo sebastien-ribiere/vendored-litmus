@@ -1,0 +1,22 @@
+# Mirror these images first. This prefix addresses public or node-authenticated
+# Harbor; the unmodified upstream core chart has no imagePullSecrets value.
+images:
+  litmusRegistry: harbor.example.org/dockerhub
+  overrides:
+    alexeiled/stress-ng:latest-ubuntu: harbor.example.org/dockerhub/alexeiled/stress-ng:latest-ubuntu
+    gaiadocker/iproute2: harbor.example.org/dockerhub/gaiadocker/iproute2:latest
+    ubuntu:16.04: harbor.example.org/dockerhub/library/ubuntu:16.04
+    ghcr.io/grafana/k6-operator:latest-runner: harbor.example.org/ghcr/grafana/k6-operator:latest-runner
+    litmuschaos/litmus-app-deployer:latest: harbor.example.org/dockerhub/litmuschaos/litmus-app-deployer:latest
+    litmuschaos/k8s:latest: harbor.example.org/dockerhub/litmuschaos/k8s:latest
+    litmuschaos/litmus-checker:latest: harbor.example.org/dockerhub/litmuschaos/litmus-checker:latest
+litmus-core:
+  operator:
+    image:
+      repository: harbor.example.org/dockerhub/litmuschaos/chaos-operator
+  runner:
+    image:
+      repository: harbor.example.org/dockerhub/litmuschaos/chaos-runner
+  exporter:
+    image:
+      repository: harbor.example.org/dockerhub/litmuschaos/chaos-exporter

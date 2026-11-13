@@ -1,0 +1,12 @@
+Litmus {{ .Chart.AppVersion }} / vendored catalogue
+{{ if .Values.catalogue.enabled }}
+Discover the catalogue:
+  kubectl -n {{ .Release.Namespace }} get cm {{ include "vl.fullname" . }}-index -o jsonpath='{.data.catalogue\.json}'
+Execution service account: {{ include "vl.executionSA" . }}
+Consumer service account: {{ include "vl.consumerSA" . }}
+Execution permission scope: {{ .Values.execution.rbac.scope }}
+
+No ChaosEngine, Workflow or CronWorkflow was launched by this installation.
+Read docs/application-contract.md before submitting an engine.
+{{ end }}
+CRDs are installed by Helm but are NOT upgraded or deleted automatically.

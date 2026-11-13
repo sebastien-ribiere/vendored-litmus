@@ -1,0 +1,31 @@
+# For: helm install chaos ./charts/vendored-litmus -n chaos --create-namespace
+# Apply the demo app in the same namespace, then explicitly apply this engine.
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosEngine
+metadata:
+  name: demo-pod-delete
+  namespace: chaos
+spec:
+  appinfo:
+    appns: chaos
+    applabel: app=chaos-demo
+    appkind: deployment
+  annotationCheck: 'false'
+  engineState: active
+  chaosServiceAccount: chaos-vendored-litmus-executor
+  jobCleanUpPolicy: retain
+  experiments:
+    - name: pod-delete
+      spec:
+        components:
+          env:
+            - name: TOTAL_CHAOS_DURATION
+              value: '15'
+            - name: CHAOS_INTERVAL
+              value: '5'
+            - name: FORCE
+              value: 'false'
+            - name: PODS_AFFECTED_PERC
+              value: '50'
+            - name: DEFAULT_HEALTH_CHECK
+              value: 'true'

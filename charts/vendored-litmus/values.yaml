@@ -1,0 +1,68 @@
+# One catalogue per namespace. ChaosEngines must live in the same namespace.
+nameOverride: ""
+fullnameOverride: ""
+
+litmus-core:
+  enabled: true
+  # Avoid upstream's fixed "litmus" name; Helm derives a release-specific name.
+  nameOverride: litmus-core
+  fullnameOverride: ""
+  operatorMode: standard
+  policies:
+    monitoring:
+      disabled: true
+  operator:
+    image:
+      repository: docker.io/litmuschaos/chaos-operator
+      tag: "3.30.0"
+      pullPolicy: IfNotPresent
+  runner:
+    image:
+      repository: docker.io/litmuschaos/chaos-runner
+      tag: "3.30.0"
+  exporter:
+    enabled: false
+    image:
+      repository: docker.io/litmuschaos/chaos-exporter
+      tag: "3.30.0"
+      pullPolicy: IfNotPresent
+
+catalogue:
+  enabled: true
+  # Empty lists mean all categories / all fault names, respectively.
+  categories: []
+  include: []
+  exclude: []
+  # Per-fault ChaosEngine blueprints; stored as data, never applied by Helm.
+  engineTemplates: true
+  # All 10 upstream Workflow + 10 CronWorkflow examples, stored as reference data.
+  workflowTemplates: true
+
+images:
+  # Only the Scarf prefix is rewritten; third-party images retain upstream refs.
+  litmusRegistry: docker.io
+  pullPolicy: IfNotPresent
+  # Exact original reference -> replacement (can contain a digest).
+  overrides: {}
+
+execution:
+  serviceAccount:
+    create: true
+    name: ""
+    annotations: {}
+    imagePullSecrets: []
+  rbac:
+    create: true
+    # Namespace: execution in the release namespace. Cluster explicitly enables
+    # node/infra faults and cross-namespace targets. Permissions follow selection.
+    scope: Namespace
+
+# Application identity: read catalogue/results, manage ChaosEngines.
+# Execution is delegated to execution.serviceAccount, not this identity.
+consumer:
+  serviceAccount:
+    create: true
+    name: ""
+    annotations: {}
+  rbac:
+    create: true

@@ -1,0 +1,4 @@
+# Preserve upstream bytes, including its whitespace; local wrappers stay checked.
+charts/vendored-litmus/charts/litmus-core/** -whitespace linguist-vendored
+charts/vendored-litmus/files/upstream/** -whitespace linguist-vendored
+*.tgz binary

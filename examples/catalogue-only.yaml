@@ -1,0 +1,3 @@
+# Existing CRDs and a cluster-wide Litmus operator must already be installed.
+litmus-core:
+  enabled: false

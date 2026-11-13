@@ -1,0 +1,50 @@
+name: Validate Helm catalogue
+on:
+  push:
+    branches: [main, 'feat/**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  chart:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4.3.0
+        with:
+          version: v3.17.3
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements-dev.txt
+      - run: make package
+      - name: Check distributed chart matches source
+        run: python scripts/check-package.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: helm-chart
+          path: dist/*.tgz
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4.3.0
+        with:
+          version: v3.17.3
+      - uses: helm/kind-action@v1
+        with:
+          cluster_name: vendored-litmus-ci
+          version: v0.27.0
+          node_image: kindest/node:v1.32.2
+      - name: Install and exercise catalogue in disposable cluster
+        run: scripts/integration.sh
+      - name: Diagnostics
+        if: failure()
+        run: |
+          kubectl get pods -A -o wide
+          kubectl get events -n chaos --sort-by=.lastTimestamp
+          kubectl get chaosengines,chaosresults -n chaos -o yaml
+          kubectl logs -n chaos -l app.kubernetes.io/component=litmus-infra --all-containers --tail=200
+          kubectl logs -n chaos -l app=chaos-runner --all-containers --tail=200

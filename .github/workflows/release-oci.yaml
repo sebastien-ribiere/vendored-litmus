@@ -1,0 +1,34 @@
+name: Publish OCI chart
+on:
+  push:
+    tags: ['chart-v*']
+permissions:
+  contents: read
+  packages: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4.3.0
+        with:
+          version: v3.17.3
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements-dev.txt
+      - name: Verify tag and package
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          test "${RELEASE_TAG#chart-v}" = "$(python -c "import yaml; print(yaml.safe_load(open('charts/vendored-litmus/Chart.yaml'))['version'])")"
+          make package
+          python scripts/check-package.py
+      - name: Push to GHCR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_ACTOR: ${{ github.actor }}
+          GH_OWNER: ${{ github.repository_owner }}
+        run: |
+          printf '%s' "$GH_TOKEN" | helm registry login ghcr.io --username "$GH_ACTOR" --password-stdin
+          helm push dist/*.tgz "oci://ghcr.io/${GH_OWNER,,}/charts"

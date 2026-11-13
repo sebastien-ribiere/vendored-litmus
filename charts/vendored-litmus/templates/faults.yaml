@@ -1,0 +1,10 @@
+{{- if .Values.catalogue.enabled }}
+{{- range $fault := include "vl.faults" . | fromJsonArray }}
+{{- $doc := fromYaml (include "vl.rewriteImages" (dict "root" $ "text" ($.Files.Get $fault.path))) }}
+{{- $_ := set $doc.metadata "namespace" $.Release.Namespace }}
+{{- $_ := set $doc.metadata "labels" (merge (dict "vendored-litmus.io/category" $fault.category) (include "vl.labels" $ | fromYaml) $doc.metadata.labels) }}
+{{- $_ := set $doc.spec.definition "imagePullPolicy" $.Values.images.pullPolicy }}
+---
+{{ toYaml $doc }}
+{{- end }}
+{{- end }}

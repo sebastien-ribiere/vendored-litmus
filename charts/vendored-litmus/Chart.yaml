@@ -1,0 +1,16 @@
+apiVersion: v2
+name: vendored-litmus
+description: Vendored Litmus core and complete, inert chaos catalogue for application-driven campaigns
+type: application
+version: 0.1.0
+appVersion: "3.30.0"
+home: https://github.com/sebastien-ribiere/vendored-litmus
+sources:
+  - https://github.com/litmuschaos/litmus-helm
+  - https://github.com/litmuschaos/chaos-charts
+keywords: [litmus, chaos-engineering, catalogue]
+dependencies:
+  - name: litmus-core
+    version: 3.30.0
+    condition: litmus-core.enabled
+    # No remote repository: the unpacked upstream chart is committed in charts/.

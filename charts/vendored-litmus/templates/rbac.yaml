@@ -1,0 +1,114 @@
+{{- if .Values.catalogue.enabled }}
+{{- if .Values.execution.serviceAccount.create }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "vl.executionSA" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "vl.labels" . | nindent 4 }}
+  {{- with .Values.execution.serviceAccount.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- with .Values.execution.serviceAccount.imagePullSecrets }}
+imagePullSecrets:
+  {{- toYaml . | nindent 2 }}
+{{- end }}
+{{- end }}
+{{- if .Values.execution.rbac.create }}
+{{- $rules := dict }}
+{{- range $fault := include "vl.faults" . | fromJsonArray }}
+{{- $doc := fromYaml ($.Files.Get $fault.path) }}
+{{- range $rule := $doc.spec.definition.permissions }}
+{{- $_ := set $rules (toJson $rule) $rule }}
+{{- end }}
+{{- end }}
+{{- $cluster := eq .Values.execution.rbac.scope "Cluster" }}
+{{- $name := printf "%s-executor" (include "vl.fullname" .) }}
+{{- if $cluster }}{{ $name = printf "%s-%s" .Release.Namespace $name | trunc 253 | trimSuffix "-" }}{{ end }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: {{ ternary "ClusterRole" "Role" $cluster }}
+metadata:
+  name: {{ $name }}
+  {{- if not $cluster }}
+  namespace: {{ .Release.Namespace }}
+  {{- end }}
+  labels:
+    {{- include "vl.labels" . | nindent 4 }}
+rules:
+{{- range $key := keys $rules | sortAlpha }}
+  {{- toYaml (list (get $rules $key)) | nindent 2 }}
+{{- end }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: {{ ternary "ClusterRoleBinding" "RoleBinding" $cluster }}
+metadata:
+  name: {{ $name }}
+  {{- if not $cluster }}
+  namespace: {{ .Release.Namespace }}
+  {{- end }}
+  labels:
+    {{- include "vl.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: {{ ternary "ClusterRole" "Role" $cluster }}
+  name: {{ $name }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "vl.executionSA" . }}
+    namespace: {{ .Release.Namespace }}
+{{- end }}
+{{- if .Values.consumer.serviceAccount.create }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "vl.consumerSA" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "vl.labels" . | nindent 4 }}
+  {{- with .Values.consumer.serviceAccount.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- if .Values.consumer.rbac.create }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "vl.fullname" . }}-consumer
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "vl.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: [configmaps]
+    verbs: [get, list, watch]
+  - apiGroups: [litmuschaos.io]
+    resources: [chaosexperiments, chaosresults]
+    verbs: [get, list, watch]
+  - apiGroups: [litmuschaos.io]
+    resources: [chaosengines]
+    verbs: [get, list, watch, create, update, patch, delete]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "vl.fullname" . }}-consumer
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "vl.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "vl.fullname" . }}-consumer
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "vl.consumerSA" . }}
+    namespace: {{ .Release.Namespace }}
+{{- end }}
+{{- end }}
