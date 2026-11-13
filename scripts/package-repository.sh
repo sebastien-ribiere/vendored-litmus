@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 helm_bin=${HELM:-helm}
+"$helm_bin" dependency build charts/vendored-litmus
 mkdir -p helm-repository
 "$helm_bin" package charts/vendored-litmus --destination helm-repository
 args=()
