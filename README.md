@@ -22,11 +22,11 @@ installé. Les campagnes directes `ChaosEngine` n’en ont pas besoin.
 
 ## Installation
 
-Depuis le dépôt Helm HTTP de la branche de préparation (utilisable immédiatement) :
+Depuis le dépôt Helm HTTP :
 
 ```sh
 helm repo add vendored-litmus \
-  https://raw.githubusercontent.com/sebastien-ribiere/vendored-litmus/feat/vendor-litmus-catalogue/helm-repository
+  https://raw.githubusercontent.com/sebastien-ribiere/vendored-litmus/main/helm-repository
 helm repo update
 helm upgrade --install chaos vendored-litmus/vendored-litmus \
   --version 0.1.0 --namespace chaos --create-namespace --wait --timeout 3m
@@ -177,8 +177,7 @@ Le script refuse tout contexte autre que `kind-vendored-litmus-ci`.
 
 Le dépôt HTTP fonctionne sans activer GitHub Pages. Les URLs d’archives dans
 l’index sont relatives : le même dossier peut être hébergé sur `main`, GitHub
-Pages ou un serveur HTTP interne. Après publication sur `main`, remplacer
-`feat/vendor-litmus-catalogue` par `main` dans l’URL du dépôt Helm. Lors d’une release, augmenter
+Pages ou un serveur HTTP interne. Lors d’une release, augmenter
 la version du chart, régénérer le paquet/index, les committer ensemble et conserver
 les anciennes archives. Un tag `chart-vX.Y.Z` déclenche en plus la publication OCI
 sur `ghcr.io/sebastien-ribiere/charts/vendored-litmus` ; cet emplacement n’existe
