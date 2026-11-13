@@ -20,7 +20,7 @@ jobs:
       - run: pip install -r requirements-dev.txt
       - run: make package
       - name: Check distributed chart matches source
-        run: python scripts/check-package.py
+        run: scripts/package-repository.sh
       - uses: actions/upload-artifact@v4
         with:
           name: helm-chart
