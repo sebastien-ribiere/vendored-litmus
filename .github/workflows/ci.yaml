@@ -38,6 +38,8 @@ jobs:
           cluster_name: vendored-litmus-ci
           version: v0.27.0
           node_image: kindest/node:v1.32.2
+      - name: Resolve pinned portal chart dependency
+        run: helm dependency build charts/vendored-litmus
       - name: Install and exercise catalogue in disposable cluster
         run: scripts/integration.sh
       - name: Diagnostics
