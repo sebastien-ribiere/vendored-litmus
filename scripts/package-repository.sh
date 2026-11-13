@@ -8,6 +8,5 @@ if [[ -f helm-repository/index.yaml ]]; then
   args+=(--merge helm-repository/index.yaml)
 fi
 "$helm_bin" repo index helm-repository \
-  --url https://raw.githubusercontent.com/sebastien-ribiere/vendored-litmus/main/helm-repository \
   "${args[@]}"
 python3 scripts/check-package.py

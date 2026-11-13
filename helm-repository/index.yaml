@@ -23,6 +23,6 @@ entries:
     - https://github.com/litmuschaos/chaos-charts
     type: application
     urls:
-    - https://raw.githubusercontent.com/sebastien-ribiere/vendored-litmus/main/helm-repository/vendored-litmus-0.1.0.tgz
+    - vendored-litmus-0.1.0.tgz
     version: 0.1.0
 generated: "2026-11-13T14:04:04.398993728+01:00"
