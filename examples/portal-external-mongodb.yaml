@@ -1,0 +1,14 @@
+# Template only: configure ingress/TLS and the pre-existing Kubernetes Secret.
+# Never expose the portal with the upstream default admin credentials.
+litmus-portal:
+  enabled: true
+  image:
+    imageRegistryName: docker.io/litmuschaos
+  mongodb:
+    enabled: false
+  existingSecret: litmus-portal-secrets
+  adminConfig:
+    DB_SERVER: mongodb.database.svc.cluster.local
+    DB_PORT: "27017"
+  ingress:
+    enabled: false
