@@ -125,8 +125,26 @@ class ChartContract(unittest.TestCase):
     def test_package_is_self_contained(self):
         with tempfile.TemporaryDirectory() as tmp:
             subprocess.run([HELM, 'package', str(CHART), '--destination', tmp], check=True, capture_output=True)
-            docs, _ = render(chart=Path(tmp) / 'vendored-litmus-0.1.0.tgz')
+            docs, _ = render(chart=Path(tmp) / 'vendored-litmus-0.2.0.tgz')
             self.assertEqual(docs, self.docs)
+
+    def test_portal_is_disabled_by_default(self):
+        self.assertFalse(any(d.get('metadata', {}).get('name', '').startswith('chaos-litmus-portal') for d in self.docs))
+
+    def test_portal_can_be_rendered_with_external_mongodb(self):
+        values = {
+            'litmus-portal': {
+                'enabled': True,
+                'mongodb': {'enabled': False},
+                'existingSecret': 'litmus-portal-secrets',
+                'adminConfig': {'DB_SERVER': 'mongo.example.svc', 'DB_PORT': '27017'},
+            },
+        }
+        docs, _ = render(values)
+        deployments = [d for d in docs if d['kind'] == 'Deployment']
+        self.assertGreaterEqual(len(deployments), 4)
+        self.assertEqual(len([d for d in docs if d['kind'] == 'ChaosExperiment']), 53)
+        self.assertFalse(any(d['kind'] == 'ChaosEngine' for d in docs))
 
     def test_examples_render(self):
         for path in (ROOT / 'examples').glob('*.yaml'):

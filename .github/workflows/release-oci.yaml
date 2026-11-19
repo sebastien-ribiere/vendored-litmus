@@ -23,7 +23,7 @@ jobs:
         run: |
           test "${RELEASE_TAG#chart-v}" = "$(python -c "import yaml; print(yaml.safe_load(open('charts/vendored-litmus/Chart.yaml'))['version'])")"
           make package
-          python scripts/check-package.py
+          scripts/package-repository.sh
       - name: Push to GHCR
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

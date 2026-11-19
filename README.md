@@ -187,3 +187,45 @@ sur GitHub si nécessaire.
 
 Voir [la procédure de vendoring](docs/vendoring.md), [l’inventaire](docs/catalogue.md)
 et [les licences amont](NOTICE.md).
+
+
+## Optional Litmus ChaosCenter portal (3.30.0)
+
+The upstream ChaosCenter Helm chart is named `litmus`, exposed as the optional
+`litmus-portal` dependency in this parent chart. It is **disabled by default**.
+The existing catalogue (53 ChaosExperiments, inert ChaosEngine blueprints,
+reference workflows) remains managed independently, and enabling the portal
+does **not** schedule a chaos campaign.
+
+Unlike the vendored `litmus-core` and fault sources, the official portal chart
+is a **pinned, remote Helm dependency** fetched during build. Source checkouts
+must therefore run:
+
+```sh
+helm dependency build charts/vendored-litmus
+helm lint charts/vendored-litmus
+```
+
+The distributed `vendored-litmus-0.2.0.tgz` package includes the resolved
+portal dependency; installing the packaged chart does not need a chart
+repository connection. Do not run `helm dependency update` casually during
+a reproducible build: commit the generated `Chart.lock` and review digest
+changes.
+
+For an external MongoDB instance and externally provisioned Secrets:
+
+```sh
+helm upgrade --install chaos ./charts/vendored-litmus -n chaos \
+  --create-namespace -f examples/portal-external-mongodb.yaml
+```
+
+Configure `litmus-portal.adminConfig.DB_SERVER`, credentials, the
+`litmus-portal.existingSecret`, ingress/TLS, and MongoDB connectivity for your
+environment before enabling it. The upstream chart contains insecure example
+admin/database credentials; **never deploy it with these defaults**.
+
+The portal's Kubernetes control plane and its ChaosInfra / Argo workflow
+components have a different lifecycle from `litmus-core`. Do not configure
+both controllers to own the same resources without validating the deployment
+mode and RBAC. The portal may create workflows when explicitly requested
+through ChaosCenter; the chart installation alone must not initiate experiments.
